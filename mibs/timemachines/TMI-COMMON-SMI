@@ -1,0 +1,239 @@
+--
+-- TMI-COMMON-SMI.mib
+-- August 30, 2019
+--
+	TMI-COMMON-SMI DEFINITIONS ::= BEGIN
+ 
+		IMPORTS
+			enterprises, MODULE-IDENTITY, OBJECT-IDENTITY			
+				FROM SNMPv2-SMI;
+	
+	
+-- 1.3.6.1.4.1.54414
+		timemachines MODULE-IDENTITY 
+			LAST-UPDATED "201908301200Z"
+			ORGANIZATION 
+				"TimeMachines, Inc."
+			CONTACT-INFO 
+				"
+				TimeMachines, Inc.
+				300 S 68th St Place, STE 100
+				Lincoln, NE 68510"
+			DESCRIPTION 
+				"This is the MIB Module for TimeMachines's TM2000A specific parameters"
+			REVISION "201908300000Z"
+			DESCRIPTION 
+				"Initial revision of this MIB module."
+			::= { enterprises 54414 }
+--	
+--  Type definitions
+-- 
+		GPSFixType ::= INTEGER
+			{
+			nolock(0),
+			2Dlock(1),
+			3Dlock(2)
+			}
+--
+-- Node definitions
+-- 1.3.6.1.4.1.54414.1
+		tmiSNMPManagement OBJECT-IDENTITY
+			STATUS current
+			DESCRIPTION 
+				"This is the root object identifier for all MIBs under the TimeMachines tree. "
+			::= { timemachines 1 }
+
+-- 1.3.6.1.4.1.54414.1.1
+		tmiTM2000A OBJECT-IDENTITY
+			STATUS current
+			DESCRIPTION 
+				"This is reserved for objects related to TimeMachines's TM2000A products."
+			::= { tmiSNMPManagement 1 }
+
+		
+--      The notification element definitions
+-- 
+-- 1.3.6.1.4.1.54414.1.1.0
+		tmiManualTimeSet OBJECT-TYPE
+			SYNTAX Unsigned32
+			MAX-ACCESS read-only
+			STATUS current
+			DESCRIPTION
+				"Whether time on TM2000A was set from webpage"
+			::= { tmiTM2000A 0 }
+
+-- 1.3.6.1.4.1.54414.1.1.1
+		tmiNTPCount OBJECT-TYPE
+			SYNTAX Unsigned32
+			MAX-ACCESS read-only
+			STATUS current
+			DESCRIPTION
+				"Total Count of NTP Look Ups from Clients"
+			::= { tmiTM2000A 1 }
+
+-- 1.3.6.1.4.1.54414.1.1.2
+		tmiNTPStratum OBJECT-TYPE
+			SYNTAX Unsigned32
+			MAX-ACCESS read-only
+			STATUS current
+			DESCRIPTION
+				"Stratum Level reported to clients"
+			::= { tmiTM2000A 2 }
+
+-- 1.3.6.1.4.1.54414.1.1.3
+		tmiNTPPeerSynced OBJECT-TYPE
+			SYNTAX Unsigned32
+			MAX-ACCESS read-only
+			STATUS current
+			DESCRIPTION
+				"If time is derived from Peer time source"
+			::= { tmiTM2000A 3 }
+
+-- 1.3.6.1.4.1.54414.1.1.4
+		tmiNTPTimeSincePeerSynced OBJECT-TYPE
+			SYNTAX Unsigned32
+			MAX-ACCESS read-only
+			STATUS current
+			DESCRIPTION
+				"How long has it been since lost sync with peers source"
+			::= { tmiTM2000A 4 }
+
+-- 1.3.6.1.4.1.54414.1.1.5
+		tmiGPSAltitude OBJECT-TYPE
+			SYNTAX Unsigned32
+			MAX-ACCESS read-only
+			STATUS current
+			DESCRIPTION
+				"Reported GPS Altitude"
+			::= { tmiTM2000A 5 }
+	
+-- 1.3.6.1.4.1.54414.1.1.6
+		tmiGPSFix OBJECT-TYPE
+			SYNTAX GPSFixType
+			MAX-ACCESS read-only
+			STATUS current
+			DESCRIPTION
+				"GPS Lock (fix) Level
+				 0=No Lock
+				 1=2D Lock
+				 2=3D Lock"
+			::= { tmiTM2000A 6 }
+
+-- 1.3.6.1.4.1.54414.1.1.7
+		tmiGPSHoldovertime OBJECT-TYPE
+			SYNTAX Unsigned32
+			MAX-ACCESS read-only
+			STATUS current
+			DESCRIPTION
+				"Amount of time GPS has been without lock"
+			::= { tmiTM2000A 7 }
+-- 1.3.6.1.4.1.54414.1.1.8
+		tmiGPSLocation OBJECT-TYPE
+			SYNTAX String
+			MAX-ACCESS read-only
+			STATUS current
+			DESCRIPTION
+				"Coordinate Location of TM2000A"
+			::= { tmiTM2000A 8 }
+-- 1.3.6.1.4.1.54414.1.1.9
+		tmiGPSSatIDs OBJECT-TYPE
+			SYNTAX String
+			MAX-ACCESS read-only
+			STATUS current
+			DESCRIPTION
+				"Comma delimited list of received satellites, listed in order of SNR strength"
+			::= { tmiTM2000A 9 }
+-- 1.3.6.1.4.1.54414.1.1.10
+		tmiGPSSatSNRs OBJECT-TYPE
+			SYNTAX String
+			MAX-ACCESS read-only
+			STATUS current
+			DESCRIPTION
+				"Comma delimited list of satellite SNR signal levels,
+				 aligns with Sat ID List"
+			::= { tmiTM2000A 10 }
+-- 1.3.6.1.4.1.54414.1.1.11
+		tmiGPSSatsUsed OBJECT-TYPE
+			SYNTAX Unsigned32
+			MAX-ACCESS read-only
+			STATUS current
+			DESCRIPTION
+				"Reports the number of satellites used for GPS lock"
+			::= { tmiTM2000A 11 }
+
+-- 1.3.6.1.4.1.54414.1.1.12
+		tmiGPSTimeKnown OBJECT-TYPE
+			SYNTAX Unsigned32
+			MAX-ACCESS read-only
+			STATUS current
+			DESCRIPTION
+				"Equals 1 if 1PPS averaging routine is complete and PTP is available"
+			::= { tmiTM2000A 12 }
+
+-- 1.3.6.1.4.1.54414.1.1.13
+		tmiSystemTime OBJECT-TYPE
+			SYNTAX String
+			MAX-ACCESS read-only
+			STATUS current
+			DESCRIPTION
+				"Current UTC time on TM2000A"
+			::= { tmiTM2000A 13 }
+
+-- 1.3.6.1.4.1.54414.1.1.14
+		tmiPeerSyncFail OBJECT-TYPE
+			SYNTAX Unsigned32
+			MAX-ACCESS read-only
+			STATUS current
+			DESCRIPTION
+				"True(1) if Peer sync has failed, requires that Peer sync was enabled"
+			::= { tmiTM2000A 14 }
+
+-- 1.3.6.1.4.1.54414.1.1.15
+		tmiHoldoverExpired OBJECT-TYPE
+			SYNTAX Unsigned32
+			MAX-ACCESS read-only
+			STATUS current
+			DESCRIPTION
+				"TRUE(1) if Holdover has expired, used primarily for trap"
+			::= { tmiTM2000A 15 }
+
+-- 1.3.6.1.4.1.54414.1.2
+		tmiALarmList OBJECT IDENTIFIER ::= { tmiSNMPManagement 2 }
+
+-- 1.3.6.1.4.1.54414.1.2.1
+		tmiGPSLockAlarm NOTIFICATION-TYPE
+			OBJECTS { tmiGPSFix }
+			STATUS current
+			DESCRIPTION 
+				"GPS Lock Status Changed"
+			::= { tmiALarmList 1 }
+
+-- 1.3.6.1.4.1.54414.1.2.2
+		tmiPeerSyncAlarm NOTIFICATION-TYPE
+			OBJECTS { tmiPeerSyncFail }
+			STATUS current
+			DESCRIPTION 
+				"Peer NTP Sync Lost"
+			::= { tmiALarmList 2 }
+
+-- 1.3.6.1.4.1.54414.1.2.3
+		tmiHoldoverAlarm NOTIFICATION-TYPE
+			OBJECTS { tmiHoldOverExpired }
+			STATUS current
+			DESCRIPTION 
+				"Holdover Period Ended"
+			::= { tmiALarmList 3 }
+
+-- 1.3.6.1.4.1.54414.1.2.4
+		tmiStratumAlarm NOTIFICATION-TYPE
+			OBJECTS { tmiNTPStratum }
+			STATUS current
+			DESCRIPTION 
+				"NTP Stratum Reported has changed"
+			::= { tmiALarmList 4 }
+
+	END
+
+--
+-- TMI-COMMON-SMI.mib
+--
