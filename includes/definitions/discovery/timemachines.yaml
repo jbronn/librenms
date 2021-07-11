@@ -1,0 +1,99 @@
+---
+mib: TMI-COMMON-SMI
+modules:
+    sensors:
+        count:
+            data:
+                -
+                    oid: tmiNTPCount
+                    num_oid: .1.3.6.1.4.1.54414.1.1.1
+                    value: tmiNTPCount
+                    descr: 'NTP Lookups'
+                    index: tmiNTPCount
+                -
+                    oid: tmiGPSAltitude
+                    num_oid: .1.3.6.1.4.1.54414.1.1.5
+                    value: tmiGPSAltitude
+                    descr: 'GPS Altitude'
+                    index: tmiGPSAltitude
+                -
+                    oid: tmiGPSSatsUsed
+                    num_oid: .1.3.6.1.4.1.54414.1.1.11
+                    value: tmiGPSSatsUsed
+                    descr: 'Number of Satellites'
+                    index: tmiGPSSatsUsed
+                -
+                    oid: tmiGPSHoldovertime
+                    num_oid: .1.3.6.1.4.1.54414.1.1.7
+                    value: tmiGPSHoldovertime
+                    descr: 'Time Since GPS Lock'
+                    index: tmiGPSHoldovertime
+                -
+                    oid: tmiNTPPeerSynced
+                    num_oid: .1.3.6.1.4.1.54414.1.1.3
+                    value: tmiNTPPeerSynced
+                    descr: 'NTP Peer Synced'
+                    index: tmiNTPPeerSynced
+                -
+                    oid: tmiNTPTimeSincePeerSynced
+                    num_oid: .1.3.6.1.4.1.54414.1.1.4
+                    value: tmiNTPTimeSincePeerSynced
+                    descr: 'Time Since Peer Synced'
+                    index: tmiNTPTimeSincePeerSynced
+        state:
+            data:
+                -
+                    oid: tmiNTPStratum
+                    num_oid: .1.3.6.1.4.1.54414.1.1.2
+                    value: tmiNTPStratum
+                    descr: 'Stratum Level'
+                    index: '0'
+                    state_name: tmiNTPStratum
+                    states:
+                        - {descr: 'Stratum 0', value: 0, generic: 0, graph: 0}
+                        - {descr: 'Stratum 1', value: 1, generic: 0, graph: 1}
+                        - {descr: 'Stratum 2', value: 2, generic: 2, graph: 2}
+                        - {descr: 'Stratum 3', value: 3, generic: 2, graph: 3}
+                        - {descr: 'Stratum 4', value: 4, generic: 2, graph: 4}
+                        - {descr: 'Stratum 5', value: 5, generic: 2, graph: 5}
+                        - {descr: 'Stratum 6', value: 6, generic: 2, graph: 6}
+                        - {descr: 'Stratum 7', value: 7, generic: 2, graph: 7}
+                        - {descr: 'Stratum 8', value: 8, generic: 2, graph: 8}
+                        - {descr: 'Stratum 9', value: 9, generic: 2, graph: 9}
+                        - {descr: 'Stratum 10', value: 10, generic: 2, graph: 10}
+                        - {descr: 'Stratum 11', value: 11, generic: 2, graph: 11}
+                        - {descr: 'Stratum 12', value: 12, generic: 2, graph: 12}
+                        - {descr: 'Stratum 13', value: 13, generic: 2, graph: 13}
+                        - {descr: 'Stratum 14', value: 14, generic: 2, graph: 14}
+                        - {descr: 'Stratum 15', value: 15, generic: 2, graph: 15}
+                -
+                    oid: tmiGPSFix
+                    num_oid: .1.3.6.1.4.1.54414.1.1.6
+                    value: tmiGPSFix
+                    descr: 'GPS Fix'
+                    index: '0'
+                    state_name: tmiGPSFix
+                    states:
+                        - {descr: 'No Lock', value: 0, generic: 2, graph: 2}
+                        - {descr: '2D Lock', value: 1, generic: 1, graph: 1}
+                        - {descr: '3D Lock', value: 2, generic: 0, graph: 0}
+                -
+                    oid: tmiGPSTimeKnown
+                    num_oid: .1.3.6.1.4.1.54414.1.1.12
+                    value: tmiGPSTimeKnown
+                    descr: 'PTP Availability'
+                    index: '0'
+                    state_name: tmiGPSTimeKnown
+                    states:
+                        - {descr: Available, value: 1, generic: 0, graph: 1}
+                        - {descr: Unavailable, value: 0, generic: 2, graph: 0}
+                -
+                    oid: tmiManualTimeSet
+                    num_oid: .1.3.6.1.4.1.54414.1.1.0
+                    value: tmiManualTimeSet
+                    descr: 'Time Manually Set'
+                    index: '0'
+                    state_name: tmiManualTimeSet
+                    states:
+                        - {descr: 'true', value: 1, generic: 1, graph: 1}
+                        - {descr: 'false', value: 0, generic: 0, graph: 0}

@@ -1,0 +1,34 @@
+---
+os: timemachines
+text: 'Time Machines'
+type: timing
+icon: timemachines
+mib_dir: timemachines
+discovery:
+    -
+        snmpget:
+            oid: .1.3.6.1.4.1.54414.1.1.2.0
+            op: '>='
+            value: '1'
+    -
+        sysObjectID:
+            - .1.3.6.1.4.1.8072.3.2.10
+        sysDescr_regex:
+            - '/Linux am335x-evm.*armv7l/'
+discovery_modules:
+    bgp-peers: false
+    cisco-vrf-lite: false
+    ntp: false
+    ospf: false
+    stp: false
+    vrf: false
+    wireless: false
+poller_modules:
+    bgp-peers: false
+    ipmi: false
+    ntp: false
+    ospf: false
+    stp: false
+    vlans: false
+    wifi: false
+    wireless: false
