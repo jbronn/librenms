@@ -18,15 +18,18 @@ discovery:
 discovery_modules:
     bgp-peers: false
     cisco-vrf-lite: false
-    ntp: false
+    discovery-protocols: false
+    entity-physical: false
+    mpls: false
     ospf: false
+    ports-stack: false
     stp: false
     vrf: false
     wireless: false
 poller_modules:
     bgp-peers: false
     ipmi: false
-    ntp: false
+    mpls: false
     ospf: false
     stp: false
     vlans: false
