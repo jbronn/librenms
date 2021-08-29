@@ -70,7 +70,7 @@ lnms config:set snmp.community
   > yes
 
 
-lnms config:get snmp.community --json
+lnms config:get snmp.community
   ["public"]
 ```
 
@@ -504,13 +504,28 @@ $config['allow_duplicate_sysName'] = false;
 
 ## Global poller and discovery modules
 
-Generally, it is a better to set these [per
-OS](../Developing/os/Settings.md#poller-and-discovery-modules) or
-device.
+Enable or disable discovery or poller modules.
 
-```php
-$config['discovery_modules']['arp-table'] = true;
-$config['poller_modules']['bgp-peers']    = false;
+This setting has an order of precedence Device > OS > Global.
+So if the module is set at a more specific level, it will override the
+less specific settings.
+
+Global:
+
+```bash
+lnms config:set discovery_modules.arp-table false
+
+lnms config:set discovery_modules.entity-state true
+lnms config:set poller_modules.entity-state true
+```
+
+Per OS:
+
+```bash
+lnms config:set os.ios.discovery_modules.arp-table false
+
+lnms config:set os.ios.discovery_modules.entity-state true
+lnms config:set os.ios.poller_modules.entity-state true
 ```
 
 ## SNMP Settings
@@ -882,25 +897,7 @@ Please refer to [Authentication](../Extensions/Authentication.md)
 
 ## Cleanup options
 
-These options rely on daily.sh running from cron as per the installation instructions.
-
-```php
-$config['syslog_purge']                                   = 30;
-$config['eventlog_purge']                                 = 30;
-$config['authlog_purge']                                  = 30;
-$config['device_perf_purge']                              = 7;
-$config['alert_log_purge']                                = 365;
-$config['port_fdb_purge']                                 = 10;
-$config['rrd_purge']                                      = 90;// Not set by default
-```
-
-These options will ensure data within LibreNMS over X days old is
-automatically purged. You can alter these individually. values are in days.
-
-> NOTE: Please be aware that `$config['rrd_purge']` is _NOT_ set by
-> default. This option will remove any old data within  the rrd
-> directory automatically - only enable this if you are comfortable
-> with that happening.
+Please refer to [Cleanup Options](../Support/Cleanup-options.md)
 
 ## Syslog options
 
