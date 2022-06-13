@@ -18,6 +18,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * @link       https://www.librenms.org
+ *
  * @copyright  2018 Tony Murray
  * @author     Tony Murray <murraytony@gmail.com>
  */
@@ -154,7 +155,7 @@ class Location extends Model
             ->whereNotNull('location_id')
             ->pluck('location_id');
 
-        return $query->whereIn('id', $ids);
+        return $query->whereIntegerInRaw('id', $ids);
     }
 
     public function scopeInDeviceGroup($query, $deviceGroup)

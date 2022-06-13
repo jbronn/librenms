@@ -18,6 +18,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * @link       https://www.librenms.org
+ *
  * @copyright  2017 Tony Murray
  * @author     Tony Murray <murraytony@gmail.com>
  */
@@ -25,6 +26,7 @@
 namespace LibreNMS\Validations;
 
 use LibreNMS\Config;
+use LibreNMS\Util\Version;
 use LibreNMS\Validator;
 
 class Rrd extends BaseValidation
@@ -33,22 +35,22 @@ class Rrd extends BaseValidation
      * Validate this module.
      * To return ValidationResults, call ok, warn, fail, or result methods on the $validator
      *
-     * @param Validator $validator
+     * @param  Validator  $validator
      */
     public function validate(Validator $validator)
     {
-        $versions = $validator->getVersions();
-
         // Check that rrdtool config version is what we see
-        if (Config::has('rrdtool_version')
-            && version_compare(Config::get('rrdtool_version'), '1.5.5', '<')
-            && version_compare(Config::get('rrdtool_version'), $versions['rrdtool_ver'], '>')
-        ) {
-            $validator->fail(
-                'The rrdtool version you have specified is newer than what is installed.',
-                "Either comment out \$config['rrdtool_version'] = '" .
-                Config::get('rrdtool_version') . "'; or set \$config['rrdtool_version'] = '{$versions['rrdtool_ver']}';"
-            );
+        if (Config::has('rrdtool_version')) {
+            $rrd_version = Version::get()->rrdtool();
+            if (version_compare(Config::get('rrdtool_version'), '1.5.5', '<')
+                && version_compare(Config::get('rrdtool_version'), $rrd_version, '>')
+            ) {
+                $validator->fail(
+                    'The rrdtool version you have specified is newer than what is installed.',
+                    "Either comment out \$config['rrdtool_version'] = '" .
+                    Config::get('rrdtool_version') . "'; or set \$config['rrdtool_version'] = '{$rrd_version}';"
+                );
+            }
         }
 
         if (Config::get('rrdcached')) {

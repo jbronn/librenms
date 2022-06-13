@@ -18,6 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @link       http://librenms.org
+ *
  * @copyright  2021 Otto Reinikainen
  * @author     Otto Reinikainen <otto@ottorei.fi>
  */
@@ -25,8 +26,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use LibreNMS\Interfaces\Models\Keyable;
 
-class IsisAdjacency extends PortRelatedModel
+class IsisAdjacency extends PortRelatedModel implements Keyable
 {
     use HasFactory;
 
@@ -35,8 +37,10 @@ class IsisAdjacency extends PortRelatedModel
 
     protected $fillable = [
         'device_id',
+        'index',
         'port_id',
         'ifIndex',
+        'isisCircAdminState',
         'isisISAdjState',
         'isisISAdjNeighSysType',
         'isisISAdjNeighSysID',
@@ -52,5 +56,10 @@ class IsisAdjacency extends PortRelatedModel
     public function device()
     {
         return $this->belongsTo(\App\Models\Port::class, 'device_id');
+    }
+
+    public function getCompositeKey()
+    {
+        return $this->ifIndex . $this->index;
     }
 }
