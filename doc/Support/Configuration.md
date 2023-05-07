@@ -26,6 +26,38 @@ The LibreNMS uses dot notation for config items:
 
 If you set up bash completion, you can use tab completion to find config settings.
 
+### Getting a list of all current values
+
+To get a complete list of all the current values, you can use the command `lnms config:get --dump`. The output may not be desirable, so you can use the `jq` package to pretty print it. Then it would be `lnms config:get --dump | jq`.
+
+Example output:
+```
+librenms@librenms:~$ lnms config:get --dump | jq 
+{
+  "install_dir": "/opt/librenms",
+  "active_directory": {
+    "users_purge": 0
+  },
+  "addhost_alwayscheckip": false,
+  "alert": {
+    "ack_until_clear": false,
+    "admins": true,
+    "default_copy": true,
+    "default_if_none": false,
+    "default_mail": false,
+    "default_only": true,
+    "disable": false,
+    "fixed-contacts": true,
+    "globals": true,
+    "syscontact": true,
+    "transports": {
+      "mail": 5
+    },
+    "tolerance_window": 5,
+    "users": false,
+    ...
+```
+
 ### Examples
 
 ```bash
@@ -625,7 +657,6 @@ Please refer to [Billing](../Extensions/Billing-Module.md)
 ## Global module support
 
 ```bash
-lnms config:set enable_bgp true # Enable BGP session collection and display
 lnms config:set enable_syslog false # Enable Syslog
 lnms config:set enable_inventory true # Enable Inventory
 lnms config:set enable_pseudowires true # Enable Pseudowires
@@ -719,6 +750,38 @@ Please refer to [Smokeping](../Extensions/Smokeping.md)
 ### NFSen
 
 Please refer to [NFSen](../Extensions/NFSen.md)
+
+### Location parsing
+
+LibreNMS can interpret sysLocation information and map the device loction based on GeoCoordinates or GeoCoding information.
+
+- Info-keywords
+  - `[]` contains optional Latitude and Longitude information if manual GeoCoordinate positioning is desired.
+  - `()` contains optional information that is ignored during GeoCoding lookups.
+
+
+#### **GeoCoordinates** 
+If device sysLocation information contains [lat, lng] (note the comma and square brackets), that is used to determin the GeoCoordinates.
+
+Example:
+```bash
+name_that_can_not_be_looked_up [40.424521, -86.912755]
+```
+
+#### **GeoCoding**
+Next it will attempt to look up the sysLocation with a map engine provided you have configured one under $config['geoloc']['engine']. The information has to be accurate or no result is returned, when it does it will ignore any information inside parentheses, allowing you to add details that would otherwise interfeeer with the lookup.
+
+Example:
+```bash
+1100 Congress Ave, Austin, TX 78701 (3rd floor)
+Geocoding lookup is:
+1100 Congress Ave, Austin, TX 78701
+```
+#### **Overrides**
+1. You can overwrite each device sysLocation information in the webGUI under "Device settings".
+2. You can overwrite the location coordinates n in the webGUI under Device>GEO Locations
+
+
 
 ### Location mapping
 

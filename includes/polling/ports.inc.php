@@ -782,7 +782,7 @@ foreach ($ports as $port) {
 
                 $oid_prev = $oid . '_prev';
                 if (isset($port[$oid])) {
-                    $oid_diff = (($this_port[$oid] ?? 0) - $port[$oid]);
+                    $oid_diff = (intval($this_port[$oid] ?? 0) - intval($port[$oid]));
                     $oid_rate = ($oid_diff / $polled_period);
                     if ($oid_rate < 0) {
                         $oid_rate = '0';
@@ -806,8 +806,8 @@ foreach ($ports as $port) {
                 echo 'Wrote port debugging data';
             }
 
-            $port['stats']['ifInBits_rate'] = round(($port['stats']['ifInOctets_rate'] * 8));
-            $port['stats']['ifOutBits_rate'] = round(($port['stats']['ifOutOctets_rate'] * 8));
+            $port['stats']['ifInBits_rate'] = round($port['stats']['ifInOctets_rate'] * 8);
+            $port['stats']['ifOutBits_rate'] = round($port['stats']['ifOutOctets_rate'] * 8);
 
             // If we have a valid ifSpeed we should populate the stats for checking
             if (is_numeric($this_port['ifSpeed']) && $this_port['ifSpeed'] > 0) {

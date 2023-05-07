@@ -350,6 +350,9 @@ function list_devices(Illuminate\Http\Request $request)
     } elseif ($type == 'type') {
         $sql = '`d`.`type`=?';
         $param[] = $query;
+    } elseif ($type == 'display') {
+        $sql = '`d`.`display`=?';
+        $param[] = $query;
     } else {
         $sql = '1';
     }
@@ -1443,7 +1446,8 @@ function search_oxidized(Illuminate\Http\Request $request)
 function get_oxidized_config(Illuminate\Http\Request $request)
 {
     $hostname = $request->route('device_name');
-    $result = json_decode(file_get_contents(Config::get('oxidized.url') . '/node/fetch/' . $hostname . '?format=json'), true);
+    $node_info = json_decode((new \App\ApiClients\Oxidized())->getContent('/node/show/' . $hostname . '?format=json'), true);
+    $result = json_decode((new \App\ApiClients\Oxidized())->getContent('/node/fetch/' . $node_info['full_name'] . '?format=json'), true);
     if (! $result) {
         return api_error(404, 'Received no data from Oxidized');
     } else {
@@ -2918,6 +2922,26 @@ function edit_service_for_host(Illuminate\Http\Request $request)
     }
 
     return api_error(500, "Failed to update the service with id $service_id");
+}
+
+/**
+ * recieve syslog messages via json https://github.com/librenms/librenms/pull/14424
+ */
+function post_syslogsink(Illuminate\Http\Request $request)
+{
+    $json = $request->json()->all();
+
+    if (is_null($json)) {
+        return api_success_noresult(400, 'Not valid json');
+    }
+
+    $logs = array_is_list($json) ? $json : [$json];
+
+    foreach ($logs as $entry) {
+        process_syslog($entry, 1);
+    }
+
+    return api_success_noresult(200, 'Syslog received: ' . count($logs));
 }
 
 /**
