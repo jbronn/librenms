@@ -101,7 +101,7 @@ su - librenms
 ./scripts/composer_wrapper.php install --no-dev
 exit
 ```
-Sometime when there is a proxy used to gain internet access, the above script may fail. The workaround is to install the `composer` package manually. For a global installation:
+Sometimes when there is a proxy used to gain internet access, the above script may fail. The workaround is to install the `composer` package manually. For a global installation:
 ```
 wget https://getcomposer.org/composer-stable.phar
 mv composer-stable.phar /usr/bin/composer
@@ -592,7 +592,7 @@ systemctl restart snmpd
 ## Cron job
 
 ```
-cp /opt/librenms/librenms.nonroot.cron /etc/cron.d/librenms
+cp /opt/librenms/dist/librenms.cron /etc/cron.d/librenms
 ```
 
 > NOTE: Keep in mind  that cron, by default, only uses a very limited
@@ -602,6 +602,15 @@ cp /opt/librenms/librenms.nonroot.cron /etc/cron.d/librenms
 > created in the upcoming steps. Review the following URL after you
 > finished librenms install steps:
 > <@= config.site_url =@/Support/Configuration/#proxy-support>
+
+## Enable the scheduler
+
+```
+cp /opt/librenms/dist/librenms-scheduler.service /opt/librenms/dist/librenms-scheduler.timer /etc/systemd/system/
+
+systemctl enable librenms-scheduler.timer
+systemctl start librenms-scheduler.timer
+```
 
 ## Copy logrotate config
 
@@ -672,5 +681,5 @@ page](../General/Callback-Stats-and-Privacy.md) on
 what it is and how to enable it.
 
 If you would like to help make LibreNMS better there are [many ways to
-help](../Support/FAQ.md#a-namefaq9-what-can-i-do-to-helpa). You
+help](../Support/FAQ.md#a-namefaq9-what-can-i-do-to-help). You
 can also [back LibreNMS on Open Collective](https://t.libren.ms/donations).
