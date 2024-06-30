@@ -275,6 +275,8 @@ $graphs['smart'] = [
     'id187',
     'id188',
     'maxtemp',
+    'id190',
+    'id194',
     'id196',
     'id197',
     'id198',
@@ -324,16 +326,16 @@ $graphs['freeradius'] = [
     'queue',
 ];
 $graphs['suricata'] = [
-    'alert',
-    'packets',
-    'nasty_delta',
-    'nasty_percent',
-    'dec_proto',
-    'flow_proto',
-    'app_flows',
-    'app_tx',
-    'bytes',
-    'mem_use',
+    'packets_overview',
+    'nasty_delta_overview',
+    'nasty_percent_overview',
+    'dec_proto_overview',
+    'flow_proto_overview',
+    'app_flows_overview',
+    'app_tx_overview',
+    'bytes_overview',
+    'mem_use_overview',
+    'uptime_overview',
 ];
 $graphs['zfs'] = [
     'arc_misc',
@@ -448,6 +450,7 @@ $graphs['pwrstatd'] = [
     'minutes',
 ];
 $graphs['systemd'] = [
+    'all',
     'sub',
     'active',
     'load',
@@ -519,15 +522,44 @@ $graphs['privoxy'] = [
     'resp_xxx',
     'ver',
 ];
+$graphs['ss'] = [
+    'sockets',
+    'dccp',
+    'inet',
+    'inet6',
+    'link',
+    'mptcp',
+    'netlink',
+    'raw',
+    'sctp',
+    'tcp',
+    'tipc',
+    'udp',
+    'unix',
+    'vsock',
+    'xdp',
+];
+$graphs['borgbackup'] = [
+    'unique_csize',
+    'total_csize',
+    'total_size',
+    'total_chunks',
+    'total_unique_chunks',
+    'unique_size',
+    'time_since_last_modified',
+    'errored',
+    'locked',
+    'locked_for',
+];
 
 echo '<div class="panel panel-default">';
 echo '<div class="panel-heading">';
 echo "<span style='font-weight: bold;'>Apps</span> &#187; ";
 unset($sep);
 $link_array = [
-    'page'   => 'device',
+    'page' => 'device',
     'device' => $device['device_id'],
-    'tab'    => 'apps',
+    'tab' => 'apps',
 ];
 
 $apps = \LibreNMS\Util\ObjectCache::applications()->flatten();

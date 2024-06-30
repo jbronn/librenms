@@ -396,7 +396,9 @@ Due to the lack of SNMP support in the BIRD daemon, this application extracts al
 This application supports both IPv4 and IPv6 Peer processing.
 
 ### SNMP Extend
+
 1. Edit your snmpd.conf file (usually /etc/snmp/snmpd.conf) and add:
+
 ```
 extend bird2 '/usr/bin/sudo /usr/sbin/birdc -r show protocols all'
 ```
@@ -406,11 +408,31 @@ extend bird2 '/usr/bin/sudo /usr/sbin/birdc -r show protocols all'
 ```
 Debian-snmp ALL=(ALL) NOPASSWD: /usr/sbin/birdc
 ```
+
 _If your snmp daemon is running on a user that isnt `Debian-snmp` make sure that user has the correct permission to execute `birdc`_
-3. Restart snmpd on your host
+
+3. Verify the time format for bird2 is defined. Otherwise `iso short
+   ms` (hh:mm:ss) is the default value that will be used. Which is not
+   compatible with the datetime parsing logic used to parse the output
+   from the bird show command. `timeformat protocol` is the one
+   important to be defibned for the bird2 app parsing logic to work.
+
+Example starting point using Bird2 shorthand `iso long` (YYYY-MM-DD hh:mm:ss):
+
+```
+timeformat base iso long;
+timeformat log iso long;
+timeformat protocol iso long;
+timeformat route iso long;
+```
+
+*Timezone can be manually specified, example "%F %T %z" (YYYY-MM-DD
+hh:mm:ss +11:45). See the [Bird
+2 docs](https://bird.network.cz/?get_doc&v=20&f=bird-3.html) for more information*
+
+4. Restart snmpd on your host
 
 The application should be auto-discovered as described at the top of the page. If it is not, please follow the steps set out under `SNMP Extend` heading top of page.
-
 
 ## Certificate
 
@@ -455,6 +477,105 @@ extend certificate /etc/snmp/certificate.py
 4. Restart snmpd on your host
 
 The application should be auto-discovered as described at the top of the page. If it is not, please follow the steps set out under `SNMP Extend` heading top of page.
+
+## BorgBackup
+
+### SNMP Extend
+
+1. Copy the shell script to the desired host.
+```
+wget https://raw.githubusercontent.com/librenms/librenms-agent/master/snmp/borgbackup -O /etc/snmp/borgbackup
+```
+
+2. Make the script executable
+```
+chmod +x /etc/snmp/borgbackup
+```
+
+3. Install depends.
+```
+# FreeBSD
+pkg p5-Config-Tiny p5-JSON p5-File-Slurp p5-MIME-Base64 p5-String-ShellQuote
+# Debian
+apt-get install libconfig-tiny-perl libjson-perl libfile-slurp-perl libmime-base64-perl libstring-shellquote-perl
+# generic cpanm
+cpanm Config::Tiny File::Slurp JSON MIME::Base64 String::ShellQuote
+```
+
+4. Set it up in cron.
+```
+*/5 * * * /etc/snmp/borgbackup 2> /dev/null > /dev/null
+```
+
+5. Configure it. See further down below or `/etc/snmp/borgbackup
+   --help`.
+
+6. Add the following to the SNMPD config.
+```
+extend borgbackup /bin/cat /var/cache/borgbackup_extend/extend_return
+```
+
+7. Restart SNMPD and wait for the device to rediscover or tell it to
+   manually.
+
+#### Config
+
+The config file is a ini file and handled by
+[Config::Tiny](https://metacpan.org/pod/Config::Tiny).
+
+    - mode :: single or multi, for if this is a single repo or for
+            multiple repos.
+        - Default :: single
+
+    - repo :: Directory for the borg backup repo.
+        - Default :: undef
+
+    - passphrase :: Passphrase for the borg backup repo.
+        - Default :: undef
+
+    - passcommand :: Passcommand for the borg backup repo.
+        - Default :: undef
+
+For single repos all those variables are in the root section of the config,
+so lets the repo is at '/backup/borg' with a passphrase of '1234abc'.
+
+    repo=/backup/borg
+    repo=1234abc
+
+For multi, each section outside of the root represents a repo. So if
+there is '/backup/borg1' with a passphrase of 'foobar' and
+'/backup/derp' with a passcommand of 'pass show backup' it would be
+like below.
+
+    mode=multi
+
+    [borg1]
+    repo=/backup/borg1
+    passphrase=foobar
+
+    [derp]
+    repo=/backup/derp
+    passcommand=pass show backup
+
+If 'passphrase' and 'passcommand' are both specified, then passcommand
+is used.
+
+#### Metrics
+
+The metrics are all from `.data.totals` in the extend return.
+
+| Value                    | Type    | Description                                               |
+|--------------------------|---------|-----------------------------------------------------------|
+| errored                  | repos   | Total number of repos that info could not be fetched for. |
+| locked                   | repos   | Total number of locked repos                              |
+| locked_for               | seconds | Longest time any repo has been locked.                    |
+| time_since_last_modified | seconds | Largest time - mtime for the repo nonce                   |
+| total_chunks             | chunks  | Total number of chunks                                    |
+| total_csize              | bytes   | Total compressed size of all archives in all repos.       |
+| total_size               | byes    | Total uncompressed size of all archives in all repos.     |
+| total_unique_chunks      | chunks  | Total number of unique chuckes in all repos.              |
+| unique_csize             | bytes   | Total deduplicated size of all archives in all repos.     |
+| unique_size              | chunks  | Total number of chunks in all repos.                      |
 
 ## CAPEv2
 
@@ -953,32 +1074,45 @@ extend icecast /etc/snmp/icecast-stats.sh
 
 A small python3 script that reports current DHCP leases stats and pool usage of ISC DHCP Server.
 
-Also you have to install the dhcpd-pools Package.
-Under Ubuntu/Debian just run `apt install dhcpd-pools` or under
-FreeBSD `pkg install dhcpd-pools`.
+Also you have to install the dhcpd-pools and the required Perl
+modules. Under Ubuntu/Debian just run `apt install
+cpanminus ; cpanm Net::ISC::DHCPd::Leases Mime::Base64 File::Slurp` or under FreeBSD
+`pkg install p5-JSON p5-MIME-Base64 p5-App-cpanminus p5-File-Slurp ; cpanm Net::ISC::DHCPd::Leases`.
 
 ### SNMP Extend
 
 1. Copy the shell script to the desired host.
 ```
-wget https://github.com/librenms/librenms-agent/raw/master/snmp/dhcp.py -O /etc/snmp/dhcp.py
+wget https://github.com/librenms/librenms-agent/raw/master/snmp/dhcp -O /etc/snmp/dhcp
 ```
 
 2. Make the script executable
 ```
-chmod +x /etc/snmp/dhcp.py
+chmod +x /etc/snmp/dhcp
 ```
 
-3. Edit your config file, Content of an example /etc/snmp/dhcp.json
+3. Edit your snmpd.conf file (usually /etc/snmp/snmpd.conf) and add:
 ```
-{"leasefile": "/var/lib/dhcp/dhcpd.leases" }
+# without using cron
+extend dhcpstats /etc/snmp/dhcp -Z
+# using cron
+extend dhcpstats /bin/cat /var/cache/dhcp_extend
 ```
-Key 'leasefile' specifies the path to your lease file.
 
-4. Edit your snmpd.conf file (usually /etc/snmp/snmpd.conf) and add:
+4. If on a slow system running it via cron may be needed.
 ```
-extend dhcpstats /etc/snmp/dhcp.py
+*/5 * * * * /etc/snmp/dhcp -Z -w /var/cache/dhcp_extend
 ```
+
+The following options are also supported.
+
+| Option     | Description                     |
+|------------|---------------------------------|
+| `-c $file` | Path to dhcpd.conf.             |
+| `-l $file` | Path to lease file.             |
+| `-Z`       | Enable GZip+Base64 compression. |
+| `-d`       | Do not de-dup.                  |
+| `-w $file` | File to write it out to.        |
 
 5. Restart snmpd on your host
 
@@ -1078,8 +1212,8 @@ extend linux_config_files /etc/snmp/linux_config_files.py
 ```
 
 4. (Optional on an RPM-based distribution) Create a /etc/snmp/linux_config_files.json file and specify the following:
-a.) "pkg_system" - String designating the distribution name of the system.  At the moment only "rpm" is supported ["rpm"]
-b.) "pkg_tool_cmd" - String path to the package tool binary ["/sbin/rpmconf"]
+    1. "pkg_system" - String designating the distribution name of the system.  At the moment only "rpm" is supported ["rpm"]
+    2. "pkg_tool_cmd" - String path to the package tool binary ["/sbin/rpmconf"]
 ```
 {
     "pkg_system": "rpm",
@@ -1702,6 +1836,9 @@ Extend` heading top of page.
 
 [Install the agent](Agent-Setup.md) on this device if it isn't already
 and copy the `osupdate` script to `/usr/lib/check_mk_agent/local/`
+
+Then uncomment the line towards the top marked to be uncommented if
+using it as a agent.
 
 ## PHP-FPM
 
@@ -2582,6 +2719,8 @@ pkg install p5-JSON p5-MIME-Base64 smartmontools
 # Debian
 apt-get install cpanminus smartmontools
 cpanm MIME::Base64 JSON
+# CentOS
+dnf install smartmontools perl-JSON perl-MIME-Base64
 ```
 
 3. Make the script executable
@@ -2589,12 +2728,19 @@ cpanm MIME::Base64 JSON
 chmod +x /etc/snmp/smart
 ```
 
-4. Edit your snmpd.conf file and add:
+4. Setup a cronjob to run it. This ensures slow to poll disks won't
+   result in errors.
+
 ```
-extend smart /etc/snmp/smart
+ */5 * * * * /etc/snmp/smart -u -Z
 ```
 
-5. You will also need to create the config file, which defaults to the same path as the script,
+5. Edit your snmpd.conf file and add:
+```
+extend smart /bin/cat /var/cache/smart
+```
+
+6. You will also need to create the config file, which defaults to the same path as the script,
 but with .config appended. So if the script is located at /etc/snmp/smart, the config file
 will be `/etc/snmp/smart.config`. Alternatively you can also specific a config via `-c`.
 
@@ -2634,32 +2780,11 @@ it should be.
 
 6. Restart snmpd on your host
 
-If you have a large number of more than one or two disks on a system,
-you should consider adding this to cron. Also make sure the cache file
-is some place it can be written to.
-
-```
- */5 * * * * /etc/snmp/smart -u
-```
-
-7. If your snmp agent runs as user "snmp", edit your sudo users
-   (usually `visudo`) and add at the bottom:
-```
-snmp ALL=(ALL) NOPASSWD: /etc/snmp/smart, /usr/bin/env smartctl
-```
-
-and modify your snmpd.conf file accordingly, sudo can be excluded if
-running it via cron:
-
-```
-extend smart /usr/bin/sudo /etc/snmp/smart
-```
-
 The application should be auto-discovered as described at the top of
 the page. If it is not, please follow the steps set out under `SNMP
 Extend` heading top of page.
 
-8. Optionally setup nightly self tests for the disks. The exend will
+7. Optionally setup nightly self tests for the disks. The exend will
    run the specified test on all configured disks if called with the
    -t flag and the name of the SMART test to run.
 
@@ -2883,6 +3008,133 @@ setup. If the default does not work, check the docs for it at
 sagan_stat_check](https://metacpan.org/dist/Sagan-Monitoring/view/bin/sagan_stat_check)
 
 
+## Socket Statistics (ss)
+
+The Socket Statistics application polls ss and scrapes socket statuses.  Individual sockets and address-families may be filtered out within the script's optional configuration JSON file.
+
+1. The following socket types are polled directly.  Filtering a socket type will disable direct polling as-well-as indirect polling within any address-families that list the socket type as their child:
+```
+dccp (also exists within address-families "inet" and "inet6")
+mptcp (also exists within address-families "inet" and "inet6")
+raw (also exists within address-families "inet" and "inet6")
+sctp (also exists within address-families "inet" and "inet6")
+tcp (also exists within address-families "inet" and "inet6")
+udp (also exists within address-families "inet" and "inet6")
+xdp
+```
+
+2. The following socket types are polled within an address-family only:
+```
+inet6 (within address-family "inet6")
+p_dgr (within address-family "link")
+p_raw (within address-family "link")
+ti_dg (within address-family "tipc")
+ti_rd (within address-family "tipc")
+ti_sq (within address-family "tipc")
+ti_st (within address-family "tipc")
+v_dgr (within address-family "vsock")
+v_str (within address-family "vsock")
+unknown (within address-families "inet", "inet6", "link", "tipc", and "vsock")
+```
+
+3. The following address-families are polled directly and have their child socket types tab-indented below them.  Filtering a socket type (see "1" above) will filter it from the address-family.  Filtering an address-family will filter out all of its child socket types.  However, if those socket types are not DIRECTLY filtered out (see "1" above), then they will continue to be monitored either directly or within other address-families in which they exist:
+```
+inet
+    dccp
+    mptcp
+    raw
+    sctp
+    tcp
+    udp
+    unknown
+inet6
+    dccp
+    icmp6
+    mptcp
+    raw
+    sctp
+    tcp
+    udp
+    unknown
+link
+    p_dgr
+    p_raw
+    unknown
+netlink
+tipc
+    ti_dg
+    ti_rd
+    ti_sq
+    ti_st
+    unknown
+unix
+    u_dgr
+    u_seq
+    u_str
+vsock
+    v_dgr
+    v_str
+    unknown
+```
+
+### SNMP Extend
+
+1. Copy the python script, ss.py, to the desired host
+```
+wget https://github.com/librenms/librenms-agent/raw/master/snmp/ss.py -O /etc/snmp/ss.py
+```
+
+2. Make the script executable
+```
+chmod +x /etc/snmp/ss.py
+```
+
+3. Edit your snmpd.conf file and add:
+```
+extend ss /etc/snmp/ss.py
+```
+
+4. (Optional) Create a /etc/snmp/ss.json file and specify:
+    1. "ss_cmd" - String path to the ss binary: ["/sbin/ss"]
+    2. "socket_types" - A comma-delimited list of socket types to include.  The following socket types are valid: dccp, icmp6, mptcp, p_dgr, p_raw, raw, sctp, tcp, ti_dg, ti_rd, ti_sq, ti_st, u_dgr, u_seq, u_str, udp, unknown, v_dgr, v_dgr, xdp.  Please note that the "unknown" socket type is represented in /sbin/ss output with the netid "???".  Please also note that the p_dgr and p_raw socket types are specific to the "link" address family; the ti_dg, ti_rd, ti_sq, and ti_st socket types are specific to the "tipc" address family; the u_dgr, u_seq, and u_str socket types are specific to the "unix" address family; and the v_dgr and v_str socket types are specific to the "vsock" address family.  Filtering out the parent address families for the aforementioned will also filter out their specific socket types.  Specifying "all" includes all of the socket types.  For example: to include only tcp, udp, icmp6 sockets, you would specify "tcp,udp,icmp6": ["all"]
+    3. "addr_families" - A comma-delimited list of address families to include.  The following families are valid: inet, inet6, link, netlink, tipc, unix, vsock.  As mentioned above under (b), filtering out the link, tipc, unix, or vsock address families will also filter out their respective socket types.  Specifying "all" includes all of the families.  For example: to include only inet and inet6 families, you would specify "inet,inet6": ["all"]
+```
+{
+    "ss_cmd": "/sbin/ss",
+    "socket_types": "all"
+    "addr_families": "all"
+}
+```
+In order to filter out uncommon/unused socket types, the following JSON configuration is recommended:
+```
+{
+    "ss_cmd": "/sbin/ss",
+    "socket_types": "icmp6,p_dgr,p_raw,raw,tcp,u_dgr,u_seq,u_str,udp",
+    "addr_families": "inet,inet6,link,netlink,unix"
+}
+```
+
+5. (Optional) If SELinux is in Enforcing mode, you must add a module so the script can poll sockets:
+```
+cat << EOF > snmpd_ss.te
+module snmp_ss 1.0;
+
+require {
+	type snmpd_t;
+	class netlink_tcpdiag_socket { bind create getattr nlmsg_read read setopt write };
+}
+
+#============= snmpd_t ==============
+
+allow snmpd_t self:netlink_tcpdiag_socket { bind create getattr nlmsg_read read setopt write };
+EOF
+checkmodule -M -m -o snmpd_ss.mod snmpd_ss.te
+semodule_package -o snmpd_ss.pp -m snmpd_ss.mod
+semodule -i snmpd_ss.pp
+```
+
+6. Restart snmpd.
+
 ## Suricata
 
 ### SNMP Extend
@@ -2957,8 +3209,8 @@ extend systemd /etc/snmp/systemd.py
 ```
 
 4. (Optional) Create a /etc/snmp/systemd.json file and specify:
-    a.) "systemctl_cmd" - String path to the systemctl binary [Default: "/usr/bin/systemctl"]
-    b.) "include_inactive_units" - True/False string to include inactive units in results [Default: "False"]
+    1. "systemctl_cmd" - String path to the systemctl binary [Default: "/usr/bin/systemctl"]
+    2. "include_inactive_units" - True/False string to include inactive units in results [Default: "False"]
 ```
 {
     "systemctl_cmd": "/bin/systemctl",
@@ -2991,7 +3243,6 @@ semodule -i snmpd_systemctl.pp
 ```
 
 6. Restart snmpd.
-
 
 ## TinyDNS aka djbdns
 
@@ -3160,7 +3411,7 @@ extend voipmon /etc/snmp/voipmon-stats.sh
 
 ## Wireguard
 
-The wireguard application polls the Wireguard service and scrapes all client statistics for all interfaces configured as Wireguard interfaces.
+The Wireguard application polls the Wireguard service and scrapes all client statistics for all interfaces configured as Wireguard interfaces.
 
 ### SNMP Extend
 
@@ -3180,8 +3431,8 @@ extend wireguard /etc/snmp/wireguard.py
 ```
 
 4. Create a /etc/snmp/wireguard.json file and specify:
-a.) (optional) "wg_cmd" - String path to the wg binary ["/usr/bin/wg"]
-b.) "public_key_to_arbitrary_name" - A dictionary to convert between the publickey assigned to the client (specified in the wireguard interface conf file) to an arbitrary, friendly name.  The friendly names MUST be unique within each interface.  Also note that the interface name and friendly names are used in the RRD filename, so using special characters is highly discouraged.
+    1. (optional) "wg_cmd" - String path to the wg binary ["/usr/bin/wg"]
+    2. "public_key_to_arbitrary_name" - A dictionary to convert between the publickey assigned to the client (specified in the wireguard interface conf file) to an arbitrary, friendly name.  The friendly names MUST be unique within each interface.  Also note that the interface name and friendly names are used in the RRD filename, so using special characters is highly discouraged.
 ```
 {
     "wg_cmd": "/bin/wg",
@@ -3203,7 +3454,7 @@ b.) "public_key_to_arbitrary_name" - A dictionary to convert between the publick
 1: Install the depends.
 ```
 ### FreeBSD
-pkg install p5-JSON p5-MIME-Base64 p5-Gzip-Faster
+pkg install p5-JSON p5-MIME-Base64 p5-Gzip-Faster p5-File-Slurp
 ### Debian
 apt-get install -y cpanminus zlib1g-dev
 cpanm Mime::Base64 JSON Gzip::Faster

@@ -27,9 +27,11 @@ namespace App\Http\ViewComposers;
 
 use App\Models\AlertRule;
 use App\Models\BgpPeer;
+use App\Models\CustomMap;
 use App\Models\Dashboard;
 use App\Models\Device;
 use App\Models\DeviceGroup;
+use App\Models\Link;
 use App\Models\Location;
 use App\Models\Notification;
 use App\Models\Package;
@@ -86,6 +88,12 @@ class MenuComposer
             Location::hasAccess($user)->where('location', '!=', '')->orderBy('location')->get(['location', 'id']) :
             new Collection();
         $vars['show_vmwinfo'] = Vminfo::hasAccess($user)->exists();
+
+        //Maps
+        $vars['links'] = Link::exists();
+        $vars['device_dependencies'] = \DB::table('device_relationships')->exists();
+        $vars['device_group_dependencies'] = $vars['device_groups']->isNotEmpty() && \DB::table('device_group_device')->exists();
+        $vars['custommaps'] = CustomMap::select(['custom_map_id', 'name', 'menu_group'])->hasAccess($user)->orderBy('name')->get()->groupBy('menu_group')->sortKeys();
 
         // Service menu
         if (Config::get('show_services')) {

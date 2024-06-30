@@ -259,8 +259,8 @@ function check_service($command)
         [$ds,$values] = explode('=', trim($string));
 
         // Keep the first value, discard the others.
-        [$value] = explode(';', trim($values));
-        $value = trim($value);
+        $value = explode(';', trim($values));
+        $value = trim($value[0] ?? '');
 
         // Set an empty uom
         $uom = '';
@@ -320,7 +320,7 @@ function check_service($command)
             }
             // We have a DS. Add an entry to the array.
             d_echo('Perf Data - DS: ' . $ds . ', Value: ' . $value . ', UOM: ' . $uom . "\n");
-            $metrics[$ds] = ['value'=>$value, 'uom'=>$uom];
+            $metrics[$ds] = ['value' => $value, 'uom' => $uom];
         } else {
             // No DS. Don't add an entry to the array.
             d_echo("Perf Data - None.\n");
