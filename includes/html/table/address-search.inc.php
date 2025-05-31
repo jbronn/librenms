@@ -38,8 +38,11 @@ if ($vars['search_type'] == 'ipv4') {
     }
 } elseif ($vars['search_type'] == 'mac') {
     $sql = ' FROM `ports` AS I, `devices` AS D';
-    $sql .= " WHERE I.device_id = D.device_id AND `ifPhysAddress` LIKE ? $where ";
-    $param[] = '%' . trim(str_replace([':', ' ', '-', '.', '0x'], '', $vars['address'])) . '%';
+    $sql .= " WHERE I.device_id = D.device_id  $where ";
+    if (! empty($address)) {
+        $sql .= ' AND `ifPhysAddress` LIKE ?';
+        $param[] = '%' . trim(str_replace([':', ' ', '-', '.', '0x'], '', $vars['address'])) . '%';
+    }
 }//end if
 if (is_numeric($vars['device_id'])) {
     $sql .= ' AND I.device_id = ?';
@@ -82,7 +85,7 @@ if ($rowCount != -1) {
 $sql = "SELECT *,`I`.`ifDescr` AS `interface` $sql";
 
 foreach (dbFetchRows($sql, $param) as $interface) {
-    $speed = \LibreNMS\Util\Number::formatSi($interface['ifSpeed'], 2, 3, 'bps');
+    $speed = \LibreNMS\Util\Number::formatSi($interface['ifSpeed'], 2, 0, 'bps');
     $type = \LibreNMS\Util\Rewrite::normalizeIfType($interface['ifType']);
 
     if ($vars['search_type'] == 'ipv6') {

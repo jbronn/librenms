@@ -1,4 +1,5 @@
 <?php
+
 /**
  * LegacyUserProvider.php
  *
@@ -28,6 +29,8 @@ namespace App\Providers;
 use App\Models\User;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\UserProvider;
+use Illuminate\Contracts\Hashing\Hasher as HasherContract;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use LibreNMS\Authentication\LegacyAuth;
 use LibreNMS\Exceptions\AuthenticationException;
@@ -42,18 +45,22 @@ class LegacyUserProvider implements UserProvider
      * Retrieve a user by their unique identifier.
      *
      * @param  mixed  $identifier
-     * @return \Illuminate\Contracts\Auth\Authenticatable|null
+     * @return Authenticatable|null
      */
     public function retrieveById($identifier)
     {
-        return User::find($identifier);
+        try {
+            return User::find($identifier);
+        } catch (QueryException) {
+            return null;
+        }
     }
 
     /**
      * Retrieve a user by their legacy auth specific identifier.
      *
      * @param  int  $identifier
-     * @return \Illuminate\Contracts\Auth\Authenticatable|null
+     * @return Authenticatable|null
      */
     public function retrieveByLegacyId($identifier)
     {
@@ -69,14 +76,18 @@ class LegacyUserProvider implements UserProvider
      *
      * @param  mixed  $identifier
      * @param  string  $token
-     * @return \Illuminate\Contracts\Auth\Authenticatable|null
+     * @return Authenticatable|null
      */
     public function retrieveByToken($identifier, $token): ?Authenticatable
     {
-        $user = new User();
-        $user = $user->where($user->getAuthIdentifierName(), $identifier)->first();
+        try {
+            $user = new User();
+            $user = $user->where($user->getAuthIdentifierName(), $identifier)->first();
 
-        if (! $user) {
+            if (! $user) {
+                return null;
+            }
+        } catch (QueryException) {
             return null;
         }
 
@@ -93,7 +104,7 @@ class LegacyUserProvider implements UserProvider
     /**
      * Update the "remember me" token for the given user in storage.
      *
-     * @param  \Illuminate\Contracts\Auth\Authenticatable  $user
+     * @param  Authenticatable  $user
      * @param  string  $token
      * @return void
      */
@@ -110,7 +121,7 @@ class LegacyUserProvider implements UserProvider
     /**
      * Validate a user against the given credentials.
      *
-     * @param  \Illuminate\Contracts\Auth\Authenticatable  $user
+     * @param  Authenticatable  $user
      * @param  array  $credentials
      * @return bool
      */
@@ -152,7 +163,7 @@ class LegacyUserProvider implements UserProvider
      * Retrieve a user by the given credentials.
      *
      * @param  array  $credentials
-     * @return \Illuminate\Contracts\Auth\Authenticatable|null
+     * @return Authenticatable|null
      */
     public function retrieveByCredentials(array $credentials)
     {
@@ -211,9 +222,29 @@ class LegacyUserProvider implements UserProvider
         // create and update roles, if provided
         $roles = $auth->getRoles($user->username);
         if ($roles !== false) {
-            $user->setRoles($roles, true);
+            $user->syncRoles($roles);
         }
 
         return $user;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function rehashPasswordIfRequired(Authenticatable $user, #[\SensitiveParameter] array $credentials, bool $force = false)
+    {
+        // TODO: NEEDS TO BE VERIFIED CORRECT SOLUTION
+        if (! isset($credentials['password']) || empty($user->getAuthPassword())) {
+            return;
+        }
+        $hasher = app(HasherContract::class);
+
+        if (! $hasher->needsRehash($user->getAuthPassword()) && ! $force) {
+            return;
+        }
+
+        $user->forceFill([
+            $user->getAuthPasswordName() => $hasher->make($credentials['password']),
+        ])->save();
     }
 }

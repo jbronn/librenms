@@ -1,4 +1,7 @@
 <?php
+
+use LibreNMS\Util\Rewrite;
+
 /*
  * LibreNMS
  *
@@ -25,7 +28,7 @@ if (! empty($entphydata)) {
     foreach ($entphydata as $index) {
         foreach ($tempdata as $tempindex => $value) {
             if ($index['entPhysicalIndex'] == $tempindex && $value['hh3cEntityExtTemperature'] != 65535) {
-                if ($value['hh3cEntityExtTemperatureThreshold'] != 65535) {
+                if (isset($value['hh3cEntityExtTemperatureThreshold']) && $value['hh3cEntityExtTemperatureThreshold'] != 65535) {
                     $hightemp = $value['hh3cEntityExtTemperatureThreshold'];
                 } else {
                     $hightemp = null;
@@ -74,7 +77,7 @@ foreach ($hh3cTransceiverInfoTable as $index => $entry) {
         $entPhysicalIndex = $index;
         $entPhysicalIndex_measured = 'ports';
 
-        $descr = makeshortif($interface['ifDescr']) . ' Module';
+        $descr = Rewrite::shortenIfName($interface['ifDescr']) . ' Module';
         discover_sensor(null, 'temperature', $device, $oid, 'temp-trans-' . $index, 'comware', $descr, $divisor, $multiplier, $limit_low, $warn_limit_low, $warn_limit, $limit, $current, 'snmp', $entPhysicalIndex, $entPhysicalIndex_measured, group: 'transceiver');
     }
 }
