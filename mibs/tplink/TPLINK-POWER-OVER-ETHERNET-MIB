@@ -582,6 +582,16 @@
                         DESCRIPTION 
                             "A poeOverMaxPowerBudget notification is sent when the total power is over the budget."
                         ::= {tplinkPoeNotifications 7}
+					
+					tpPoePortPowerOver60Watts NOTIFICATION-TYPE
+                        OBJECTS
+                        {
+                            tpPoePortIndex
+                        }
+                        STATUS current
+                        DESCRIPTION 
+                            "A poePortPowerOver60Watts notification is sent when a port's consumption is over 60W."
+                        ::= {tplinkPoeNotifications 8}
 END
 
 	
