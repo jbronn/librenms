@@ -6,6 +6,7 @@ return [
     'groups' => [
         'alerting' => 'Alerting',
         'api' => 'API',
+        'apps' => 'Applications',
         'auth' => 'Authentication',
         'authorization' => 'Authorization',
         'external' => 'External',
@@ -26,6 +27,12 @@ return [
         ],
         'api' => [
             'cors' => ['name' => 'CORS'],
+        ],
+        'apps' => [
+            'powerdns-recursor' => ['name' => 'PowerDNS Recursor'],
+            'oslv_monitor' => ['name' => 'OSLV Monitor'],
+            'sneck' => ['name' => 'Sneck'],
+            'ssl-certificates' => ['name' => 'SSL Certificates'],
         ],
         'auth' => [
             'general' => ['name' => 'General Authentication Settings'],
@@ -92,6 +99,7 @@ return [
             'reporting' => ['name' => 'Reporting'],
         ],
         'webui' => [
+            'availability-bar' => ['name' => 'Availability Bar Settings'],
             'availability-map' => ['name' => 'Availability Map Settings'],
             'custom-map' => ['name' => 'Custom Map Settings'],
             'graph' => ['name' => 'Graph Settings'],
@@ -105,6 +113,7 @@ return [
             'front-page' => ['name' => 'Front Page Settings'],
             'menu' => ['name' => 'Menu Settings'],
             'scheduled-maintenance' => ['name' => 'Scheduled Maintenance'],
+            'alert-map' => ['name' => 'Alert Map Settings'],
         ],
     ],
     'settings' => [
@@ -127,21 +136,21 @@ return [
                 'description' => 'Severity',
                 'help' => 'Severity for an Alert',
             ],
-            'max_alerts' => [
-                'description' => 'Max Alerts',
-                'help' => 'Count of Alerts to be sent',
+            'default_operation_steps_to' => [
+                'description' => 'Default operation: Steps to',
+                'help' => 'Default escalation end step for created operation rows (-1 means no limit)',
             ],
-            'delay' => [
-                'description' => 'Delay',
-                'help' => 'Delay before an Alert will be sent',
+            'default_operation_start_in' => [
+                'description' => 'Default operation: Start in',
+                'help' => 'Default delay before an operation notification is sent',
             ],
-            'interval' => [
-                'description' => 'Interval',
-                'help' => 'Interval to be checked for this Alert',
+            'default_operation_step_duration' => [
+                'description' => 'Default operation: Step duration',
+                'help' => 'Default operation step duration (minutes)',
             ],
-            'mute_alerts' => [
-                'description' => 'Mute Alerts',
-                'help' => 'Should Alert only be seen in WebUI',
+            'default_operation_notifications_suppressed' => [
+                'description' => 'Default operation: Suppress notifications',
+                'help' => 'Suppress notifications by default for created operation rows',
             ],
             'invert_rule_match' => [
                 'description' => 'Invert Rule Match',
@@ -294,6 +303,42 @@ return [
                 'port' => [
                     'description' => 'PowerDNS Recursor port',
                     'help' => 'TCP port to use for the PowerDNS Recursor app when connecting directly',
+                ],
+            ],
+            'oslv_monitor' => [
+                'seen_age' => [
+                    'description' => 'Seen age threshold',
+                    'help' => 'Age in seconds after which items are considered stale',
+                ],
+                'linux_pg_memory_stats' => [
+                    'description' => 'Linux page memory stats',
+                    'help' => 'Enable Linux page memory statistics collection',
+                ],
+                'misc_linux_memory_stats' => [
+                    'description' => 'Misc Linux memory stats',
+                    'help' => 'Enable miscellaneous Linux memory statistics collection',
+                ],
+                'zswap_size' => [
+                    'description' => 'ZSwap size stats',
+                    'help' => 'Enable ZSwap size statistics collection',
+                ],
+                'zswap_activity' => [
+                    'description' => 'ZSwap activity stats',
+                    'help' => 'Enable ZSwap activity statistics collection',
+                ],
+                'workingset_stats' => [
+                    'description' => 'Working set stats',
+                    'help' => 'Enable working set statistics collection',
+                ],
+                'thp_activity' => [
+                    'description' => 'THP activity stats',
+                    'help' => 'Enable Transparent Huge Pages activity statistics collection',
+                ],
+            ],
+            'sneck' => [
+                'polling_time_diff' => [
+                    'description' => 'Polling time difference',
+                    'help' => 'Enable polling time difference tracking for Sneck',
                 ],
             ],
         ],
@@ -692,8 +737,8 @@ return [
             'cisco-cef' => [
                 'description' => 'Cisco CEF',
             ],
-            'cisco-mac-accounting' => [
-                'description' => 'Cisco MAC Accounting',
+            'mac-accounting' => [
+                'description' => 'MAC Accounting',
             ],
             'cisco-otv' => [
                 'description' => 'Cisco OTV',
@@ -1521,9 +1566,6 @@ return [
             'description' => 'File name suffix',
             'help' => 'This is a very important bit as device names in NfSen are limited to 21 characters. This means full domain names for devices can be very problematic to squeeze in, so therefor this chunk is usually removed.',
         ],
-        'nmap' => [
-            'description' => 'Path to nmap',
-        ],
         'no_proxy' => [
             'description' => 'Proxy Exceptions',
             'help' => 'Set this as a fallback if no_proxy environment variable is not available. Comma seperated list of IPs, hosts or domains to ignore.',
@@ -1645,9 +1687,6 @@ return [
             'description' => 'Bad Interface ifType',
             'help' => 'Network interface IF-MIB:!:ifType which should be ignored',
         ],
-        'ping' => [
-            'description' => 'Path to ping',
-        ],
         'ping_rrd_step' => [
             'description' => 'Ping Frequency',
             'help' => 'How often to check. Sets the default value for all nodes. Warning! If you change this you must make additional changes.  Check the Fast Ping docs.',
@@ -1728,7 +1767,7 @@ return [
             'slas' => [
                 'description' => 'Service Level Agreement Tracking',
             ],
-            'cisco-mac-accounting' => [
+            'mac-accounting' => [
                 'description' => 'Cisco MAC Accounting',
             ],
             'cipsec-tunnels' => [
@@ -1805,6 +1844,10 @@ return [
         'ports_fdb_purge' => [
             'description' => 'Port FDB entries older than',
             'help' => 'Cleanup done by daily.sh',
+        ],
+        'ports_ipv4_neighbours' => [
+            'description' => 'Port IPv4 neighbour lookup method',
+            'help' => 'Method to use for looking up IPv4 neighours when viewing port details.  ARP will use the ARP table to find devices with matching IP and MAC addresses.  Subnet will just look for devices with IP addresses in the same subnet.',
         ],
         'ports_nac_purge' => [
             'description' => 'Port NAC entries older than',
@@ -2116,9 +2159,6 @@ return [
             'description' => 'Service Health File',
             'help' => 'Path to health file to ensure the dispatcher service is running',
         ],
-        'sfdp' => [
-            'description' => 'Path to sfdp',
-        ],
         'shorthost_target_length' => [
             'description' => 'Shortened hostname maximum length',
             'help' => 'Shrinks hostname to maximum length, but always complete subdomain parts',
@@ -2232,6 +2272,24 @@ return [
         ],
         'snmpwalk' => [
             'description' => 'Path to snmpwalk',
+        ],
+        'ssl_certificates' => [
+            'auto_discover' => [
+                'description' => 'Auto Discover SSL Certificates',
+                'help' => 'Auto discover SSL certificates',
+            ],
+            'skip_hosts' => [
+                'description' => 'Skip Hosts',
+                'help' => 'Skip hosts from SSL certificate discovery',
+            ],
+            'days_until_expiry_warning' => [
+                'description' => 'Warning (days)',
+                'help' => 'Number of days until certificate expiry to trigger a warning',
+            ],
+            'days_until_expiry_danger' => [
+                'description' => 'Danger (days)',
+                'help' => 'Number of days until certificate expiry to trigger a danger alert',
+            ],
         ],
         'sso' => [
             'create_users' => [
@@ -2359,6 +2417,32 @@ return [
                 'description' => 'Default Behaviour',
                 'help' => 'When managing scheduled maintenances, this will be the default option for the Behavior option.',
             ],
+            'availability_bar' => [
+                'threshold_green' => [
+                    'description' => 'Threshold Green',
+                    'help' => 'Threshold for green color',
+                ],
+                'threshold_orange' => [
+                    'description' => 'Threshold Orange',
+                    'help' => 'Threshold for orange color',
+                ],
+            ],
+            'alert_map_compact' => [
+                'description' => 'Alert map compact view',
+                'help' => 'Alert map view with small indicators',
+            ],
+            'alert_map_sort_status' => [
+                'description' => 'Sort by status',
+                'help' => 'Sort alerts by status',
+            ],
+            'alert_map_use_device_groups' => [
+                'description' => 'Use device groups filter',
+                'help' => 'Enable usage of device groups filter',
+            ],
+            'alert_map_box_size' => [
+                'description' => 'Alert box width',
+                'help' => 'Input desired tile width in pixels for box size in full view',
+            ],
             'availability_map_box_size' => [
                 'description' => 'Availability box width',
                 'help' => 'Input desired tile width in pixels for box size in full view',
@@ -2437,9 +2521,6 @@ return [
         'device_stats_avg_factor' => [
             'description' => 'Averaging factor',
             'help' => 'We calculate a moving average using an exponential weighted moving average function.  This is the factor used by the function to control how much the current value affects the average.  Values closer to 1 will make the average change quicker.',
-        ],
-        'whois' => [
-            'description' => 'Path to whois',
         ],
         'smokeping.integration' => [
             'description' => 'Enable',

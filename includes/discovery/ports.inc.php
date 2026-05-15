@@ -59,7 +59,7 @@ if ($device['os'] == 'zynos') {
 
 // Get correct eth0 port status for AirFiber 5XHD devices
 if ($device['os'] == 'airos-af-ltu') {
-    require 'ports/airos-af-ltu.inc.php';
+    require base_path('includes/discovery/ports/airos-af-ltu.inc.php');
 }
 
 //Teleste Luminato ifOperStatus
@@ -108,7 +108,7 @@ if ($device['port_association_mode']) {
 
 // Build array of ports in the database and an ifIndex/ifName -> port_id map
 $ports_mapped = get_ports_mapped($device['device_id']);
-$ports_db = $ports_mapped['ports'];
+$ports_db = $ports_mapped['ports'] ?? [];
 
 // Fill ifAlias for fibrechannel ports
 if ($device['os'] == 'fabos') {
@@ -138,7 +138,7 @@ foreach ($port_stats as $ifIndex => $snmp_data) {
         }
 
         // Port newly discovered?
-        if (! isset($ports_db[$port_id]) || ! is_array($ports_db[$port_id])) {
+        if ($port_id === null || ! isset($ports_db[$port_id]) || ! is_array($ports_db[$port_id])) {
             $snmp_data['device_id'] = $device['device_id'];
             $port_id = dbInsert($snmp_data, 'ports');
 
